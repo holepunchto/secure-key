@@ -1,0 +1,34 @@
+{
+  "name": "secure-key",
+  "version": "1.0.0",
+  "description": "Password protected ed25519 key pairs",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && brittle test/*.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "brittle": "^3.4.0",
+    "standard": "^17.1.0"
+  },
+  "dependencies": {
+    "compact-encoding": "^2.13.0",
+    "secure-prompt": "^1.2.0",
+    "sodium-native": "^4.0.10",
+    "z32": "^1.0.1"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/secure-key.git"
+  },
+  "bugs": {
+    "url": "https://github.com/holepunchto/secure-key/issues"
+  },
+  "homepage": "https://github.com/holepunchto/secure-key#readme"
+}
