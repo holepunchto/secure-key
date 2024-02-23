@@ -27,7 +27,7 @@ module.exports = class SecureKey {
     sodium.sodium_mprotect_noaccess(this.secretKey)
   }
 
-  static async open (keyFile, { password }) {
+  static async open (keyFile, { password } = {}) {
     try {
       await fs.stat(keyFile)
     } catch (e) {
