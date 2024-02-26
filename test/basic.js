@@ -1,12 +1,14 @@
 const path = require('path')
 const fs = require('fs').promises
 const test = require('brittle')
+const tmp = require('test-tmp')
 
 const SecureKey = require('../')
 
 test('basic', async t => {
-  const file = path.resolve(__dirname, 'keys', 'test-' + Date.now().toString())
+  const keysDir = await tmp(t)
 
+  const file = path.join(keysDir, 'test-key')
   await SecureKey.generate(file, { password: Buffer.from('password') })
 
   const pk = Buffer.from(await fs.readFile(file + '.public', { encoding: 'hex' }), 'hex')

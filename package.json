@@ -7,11 +7,12 @@
     "test": "standard && brittle test/*.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Holepunch",
+  "license": "Apache-2.0",
   "devDependencies": {
     "brittle": "^3.4.0",
-    "standard": "^17.1.0"
+    "standard": "^17.1.0",
+    "test-tmp": "^1.2.0"
   },
   "dependencies": {
     "compact-encoding": "^2.13.0",
