@@ -32,6 +32,14 @@ keyPair.clear()
 
 ## API
 
+#### `SecureKey.secretKeyLength`
+
+Byte length of secret key
+
+#### `SecureKey.publicKeyLength`
+
+Byte length of public key
+
 #### `await SecureKey.generate(path, opts)`
 
 Generate a new key pair and store to `path`.
@@ -47,16 +55,21 @@ Open a key pair stored at `path`.
 
 `opts` can be passed:
 - `password`: specify password for non-interactive mode
+- `secretKey`: pass a specific buffer for secret key to be written to
 
 #### `keyPair.unlock()`
 
 Unlock the key pair.
+
+Throws an error if secret key is not in secure memory.
 
 #### `keyPair.lock()`
 
 Lock the key pair.
 
 Any attmept to access keyPair.secretKey will trigger a segfault.
+
+Throws an error if secret key is not in secure memory.
 
 #### `keyPair.clear()`
 
