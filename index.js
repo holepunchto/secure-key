@@ -19,15 +19,20 @@ module.exports = class SecureKey {
     this.secretKey = secretKey
     this.publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
 
+    this.protected = !!secretKey.secure
+
     this._locked = false
     this._cleared = false
 
-    sodium.sodium_mprotect_readwrite(this.secretKey)
+    if (this.protected) this.unlock()
     sodium.crypto_sign_ed25519_sk_to_pk(this.publicKey, this.secretKey)
-    sodium.sodium_mprotect_noaccess(this.secretKey)
+    if (this.protected) this.lock()
   }
 
-  static async open (keyFile, { password } = {}) {
+  static secretKeyLength = sodium.crypto_sign_SECRETKEYBYTES
+  static publicKeyLength = sodium.crypto_sign_PUBLICKEYBYTES
+
+  static async open (keyFile, opts) {
     try {
       await fs.stat(keyFile)
     } catch (e) {
@@ -35,13 +40,13 @@ module.exports = class SecureKey {
     }
 
     const keyBuffer = z32.decode(await fs.readFile(keyFile, 'utf-8'))
-    const secretKey = await open(keyBuffer, { password })
+    const secretKey = await open(keyBuffer, opts)
 
     return new SecureKey(secretKey)
   }
 
-  static async generate (keyFile, { password }) {
-    const { publicKey, encryptedKey } = await generateKeys({ password })
+  static async generate (keyFile, opts) {
+    const { publicKey, encryptedKey } = await generateKeys(opts)
 
     const secretKeyPath = path.join(keyFile)
     const publicKeyPath = path.join(keyFile + '.public')
@@ -55,6 +60,8 @@ module.exports = class SecureKey {
   }
 
   lock () {
+    if (!this.protected) throw new Error('Key is not in secure memory')
+
     if (this._cleared) throw new Error('Key has been cleared')
 
     sodium.sodium_mprotect_noaccess(this.secretKey)
@@ -62,6 +69,8 @@ module.exports = class SecureKey {
   }
 
   unlock () {
+    if (!this.protected) throw new Error('Key is not in secure memory')
+
     if (this._cleared) throw new Error('Key has been cleared')
 
     sodium.sodium_mprotect_readonly(this.secretKey)
@@ -72,9 +81,11 @@ module.exports = class SecureKey {
     this._locked = false
     this._cleared = true
 
-    sodium.sodium_mprotect_readwrite(this.secretKey)
-    sodium.sodium_memzero(this.secretKey)
-    sodium.sodium_free(this.secretKey)
+    if (this.protected) {
+      sodium.sodium_mprotect_readwrite(this.secretKey)
+      sodium.sodium_memzero(this.secretKey)
+      sodium.sodium_free(this.secretKey)
+    }
 
     this.secretKey = null
   }
@@ -144,7 +155,7 @@ async function generateKeys ({ password } = {}) {
   }
 }
 
-async function open (keyBuffer, { password } = {}) {
+async function open (keyBuffer, { password, secretKey } = {}) {
   const { params, salt, payload } = c.decode(encryptedKey, keyBuffer)
 
   const kdfOutput = Buffer.alloc(8 + 64 + 32)
@@ -165,22 +176,27 @@ async function open (keyBuffer, { password } = {}) {
   sodium.sodium_memzero(kdfOutput)
 
   try {
-    const { id, secretKey, checkSum } = c.decode(keyDescriptor, payload)
+    const desc = c.decode(keyDescriptor, payload)
 
     const checkAgainst = Buffer.alloc(sodium.crypto_generichash_BYTES)
-    const checkSumData = c.encode(labelledKey, { id, secretKey })
+    const checkSumData = c.encode(labelledKey, desc)
 
     sodium.crypto_generichash(checkAgainst, checkSumData)
     sodium.sodium_memzero(checkSumData)
 
-    if (Buffer.compare(checkAgainst, checkSum) !== 0) {
+    if (Buffer.compare(checkAgainst, desc.checkSum) !== 0) {
       throw new Error('Key decryption failed')
+    }
+
+    if (secretKey) {
+      secretKey.set(desc.secretKey)
+      return secretKey
     }
 
     const secureKey = sodium.sodium_malloc(64)
 
     sodium.sodium_mprotect_readwrite(secureKey)
-    secureKey.set(secretKey)
+    secureKey.set(desc.secretKey)
     sodium.sodium_mprotect_noaccess(secureKey)
 
     return secureKey
