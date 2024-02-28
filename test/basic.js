@@ -35,24 +35,20 @@ test('basic', async t => {
   t.ok(k._cleared)
 })
 
-test('basic - pass secret key buffer', async t => {
+test('basic - unprotected', async t => {
   const keysDir = await tmp(t)
 
   const file = path.join(keysDir, 'test-key')
   await SecureKey.generate(file, { password: Buffer.from('password') })
 
   const pk = Buffer.from(await fs.readFile(file + '.public', { encoding: 'hex' }), 'hex')
-
-  const secretKey = Buffer.alloc(SecureKey.secretKeyLength)
-
-  const k = await SecureKey.open(file, { password: Buffer.from('password'), secretKey })
+  const k = await SecureKey.open(file, { password: Buffer.from('password'), protected: false })
 
   t.exception(() => k.unlock())
 
   t.alike(k.publicKey, pk)
   t.ok(k.secretKey)
   t.absent(k.secretKey.secure)
-  t.is(k.secretKey, secretKey)
   t.absent(k._locked)
   t.absent(k._cleared)
 

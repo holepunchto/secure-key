@@ -55,7 +55,7 @@ Open a key pair stored at `path`.
 
 `opts` can be passed:
 - `password`: specify password for non-interactive mode
-- `secretKey`: pass a specific buffer for secret key to be written to
+- `protected`: `true` by default. If set to `false`, secret key will be written to a plain buffer
 
 #### `keyPair.unlock()`
 

@@ -155,14 +155,14 @@ async function generateKeys ({ password } = {}) {
   }
 }
 
-async function open (keyBuffer, { password, secretKey } = {}) {
+async function open (keyBuffer, opts = {}) {
   const { params, salt, payload } = c.decode(encryptedKey, keyBuffer)
 
   const kdfOutput = Buffer.alloc(8 + 64 + 32)
 
-  if (password) {
-    sodium.crypto_pwhash_scryptsalsa208sha256(kdfOutput, password, salt, params.ops, params.mem)
-    sodium.sodium_memzero(password)
+  if (opts.password) {
+    sodium.crypto_pwhash_scryptsalsa208sha256(kdfOutput, opts.password, salt, params.ops, params.mem)
+    sodium.sodium_memzero(opts.password)
   } else {
     const pwd = await readPassword()
 
@@ -188,12 +188,11 @@ async function open (keyBuffer, { password, secretKey } = {}) {
       throw new Error('Key decryption failed')
     }
 
-    if (secretKey) {
-      secretKey.set(desc.secretKey)
-      return secretKey
+    if (opts.protected === false) {
+      return Buffer.from(desc.secretKey)
     }
 
-    const secureKey = sodium.sodium_malloc(64)
+    const secureKey = sodium.sodium_malloc(sodium.crypto_sign_SECRETKEYBYTES)
 
     sodium.sodium_mprotect_readwrite(secureKey)
     secureKey.set(desc.secretKey)
