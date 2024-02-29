@@ -188,7 +188,7 @@ async function open (keyBuffer, opts = {}) {
       throw new Error('Key decryption failed')
     }
 
-    if (opts.protected === false) {
+    if (opts.protected !== true) {
       return Buffer.from(desc.secretKey)
     }
 

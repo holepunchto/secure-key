@@ -55,7 +55,7 @@ Open a key pair stored at `path`.
 
 `opts` can be passed:
 - `password`: specify password for non-interactive mode
-- `protected`: `true` by default. If set to `false`, secret key will be written to a plain buffer
+- `protected`: `false` by default. If set to `true`, secret key will be written to [protected memory](https://sodium-friends.github.io/docs/docs/memoryprotection)
 
 #### `keyPair.unlock()`
 
