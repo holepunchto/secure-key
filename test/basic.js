@@ -12,7 +12,7 @@ test('basic', async t => {
   await SecureKey.generate(file, { password: Buffer.from('password') })
 
   const pk = Buffer.from(await fs.readFile(file + '.public', { encoding: 'hex' }), 'hex')
-  const k = await SecureKey.open(file, { password: Buffer.from('password') })
+  const k = await SecureKey.open(file, { password: Buffer.from('password'), protected: true })
 
   k.unlock()
 
@@ -42,7 +42,7 @@ test('basic - unprotected', async t => {
   await SecureKey.generate(file, { password: Buffer.from('password') })
 
   const pk = Buffer.from(await fs.readFile(file + '.public', { encoding: 'hex' }), 'hex')
-  const k = await SecureKey.open(file, { password: Buffer.from('password'), protected: false })
+  const k = await SecureKey.open(file, { password: Buffer.from('password') })
 
   t.exception(() => k.unlock())
 
